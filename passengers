@@ -1,0 +1,152 @@
+#! /bin/bash
+#------------------------------------------------------------------------------
+#                               Consts
+#-----------------------------------------------------------------------------
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+SOCKET_PATH=/var/run
+PID_PATH=/var/run
+
+PIDNAME="passenger"	  		#Lets you do $PS-Master or $PS-Slave
+PIDFILE=$PIDNAME.pid                    #pid file
+PIDSPATH=/etc/nginx/logs
+DESCRIPTION="Nginx Server..."
+
+RUNAS=root				#user to run as
+
+SCRIPT_OK=0				#ala error codes
+SCRIPT_ERROR=1				#ala error codes
+TRUE=1					#boolean
+FALSE=0					#boolean
+INF=255
+
+PROJECT_PATH[0]="/home/gitorious/mainline"
+PROJECT_NAME[0]="gitorious"
+
+#------------------------------------------------------------------------------
+#                               Functions
+#------------------------------------------------------------------------------
+
+isRunning() {
+  if [ -f "$PID_PATH/$1.pid"  ]; then
+    return $TRUE
+  else
+    return $FALSE
+  fi
+}
+
+
+status(){
+  if [ $# -eq 1 ]; then
+    status_one $1
+  else
+    for (( i=0; i<${#PROJECT_PATH[@]}; i++  )); do
+      status_one ${PROJECT_NAME[i]}
+    done
+  fi
+}
+
+status_one() {
+  find_in_projects $1
+  path_index=$?
+  if [ $path_index -ne $INF  ]; then
+    isRunning $1
+    running=$?
+
+    if [ $running -eq $TRUE  ]; then
+      echo "$1 is started"
+    else
+      echo "$1 is not started"
+    fi
+  fi
+}
+
+find_in_projects() {
+  for (( i=0; i<${#PROJECT_NAME[@]}; i++ )); do
+    if [ "${PROJECT_NAME[i]}" = "$1"  ]; then
+      return $i
+    fi
+  done
+
+  echo "$1 is not referenced, please add to /etc/init.d/passengers"
+  return $INF
+}
+
+start() {
+  if [ $# -eq 1  ]; then
+    find_in_projects $1
+    path_index=$?
+    if [ $path_index -ne -1  ]; then
+      path=${PROJECT_PATH[path_index]}
+      start_one $path $1
+    fi
+  else
+    for (( i=0; i<${#PROJECT_PATH[@]}; i++  )); do      
+      start_one ${PROJECT_PATH[i]} ${PROJECT_NAME[i]}
+    done
+  fi
+}
+
+start_one() {
+  isRunning $2
+  running=$?
+ 
+  if [ $running -eq $TRUE ]; then
+    echo "$2 is already started"
+  else
+    socket_path="$SOCKET_PATH/$2.socket"
+    pid_path="$PID_PATH/$2.pid"
+    echo "Start $2..."
+    passenger start $1 -S $socket_path --pid-file $pid_path  -d -e production
+  fi
+}
+
+stop() {
+  if [ $# -eq 1  ]; then
+    find_in_projects $1
+    path_index=$?
+    if [ $path_index -ne -1  ]; then
+      stop_one $1
+    fi
+  else
+    for (( i=0; i<${#PROJECT_NAME[@]}; i++  )); do
+      stop_one ${PROJECT_NAME[i]}
+    done
+  fi
+}
+
+stop_one() {
+  isRunning $1
+  running=$?
+
+  if [ $running -eq $FALSE ]; then
+   echo "$1 is already stopped"
+  else
+    pid="$PID_PATH/$1.pid"
+    echo "Stop $1..."
+    passenger stop --pid-file $pid
+  fi
+}
+
+case "$1" in
+  start)
+	start $2
+        ;;
+  stop)
+	stop $2
+        ;;
+  restart)
+	stop $2
+	start $2
+        ;;
+  status)
+	status $2
+	;;
+  *)
+	echo "$0 - $1 - $2"
+	FULLPATH=/etc/init.d/passengers
+	echo "Usage: $FULLPATH {start|stop|restart|status} [project]"
+	exit 1
+	;;
+esac
+
+exit 0
