@@ -11,7 +11,7 @@ PIDFILE=$PIDNAME.pid                    #pid file
 PIDSPATH=/etc/nginx/logs
 DESCRIPTION="Nginx Server..."
 
-RUNAS=root				#user to run as
+RUNAS=http				#user to run as
 
 SCRIPT_OK=0				#ala error codes
 SCRIPT_ERROR=1				#ala error codes
@@ -19,8 +19,8 @@ TRUE=1					#boolean
 FALSE=0					#boolean
 INF=255
 
-PROJECT_PATH[0]="/home/gitorious/mainline"
-PROJECT_NAME[0]="gitorious"
+# Projects to launch
+. /etc/passenger-projects
 
 #------------------------------------------------------------------------------
 #                               Functions
@@ -96,7 +96,8 @@ start_one() {
     socket_path="$SOCKET_PATH/$2.socket"
     pid_path="$PID_PATH/$2.pid"
     echo "Start $2..."
-    passenger start $1 -S $socket_path --pid-file $pid_path  -d -e production
+    cmd="passenger start $1 -S $socket_path --pid-file $pid_path  -d -e production"
+    su -c ${cmd} $RUNAS
   fi
 }
 
@@ -123,7 +124,8 @@ stop_one() {
   else
     pid="$PID_PATH/$1.pid"
     echo "Stop $1..."
-    passenger stop --pid-file $pid
+    cmd=passenger stop --pid-file $pid
+    su -c ${cmd} $RUNAS 
   fi
 }
 
