@@ -5,11 +5,6 @@ PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 SOCKET_PATH=/var/run
 PID_PATH=/var/run
 
-PIDNAME="passenger"                     #Lets you do $PS-Master or $PS-Slave
-PIDFILE=$PIDNAME.pid                    #pid file
-PIDSPATH=/etc/nginx/logs
-DESCRIPTION="Nginx Server..."
-
 RUNAS=http                              #user to run as
 
 SCRIPT_OK=0                             #ala error codes
@@ -98,7 +93,7 @@ start_one() {
     echo "Start $2..."
     cmd="passenger start $1 -S $socket_path --pid-file $pid_path  -d -e production"
     rvm use $3
-    su -c ${cmd} $RUNAS
+    su -c "${cmd}" $RUNAS
   fi
 }
 
@@ -126,7 +121,7 @@ stop_one() {
     pid="$PID_PATH/$1.pid"
     echo "Stop $1..."
     cmd=passenger stop --pid-file $pid
-    su -c ${cmd} $RUNAS 
+    su -c "${cmd}" $RUNAS 
   fi
 }
 
