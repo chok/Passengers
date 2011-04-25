@@ -37,43 +37,6 @@ isRunning() {
 status(){
   if [ $# -eq 1 ]; then
     status_one $1
-                                                                                  
-PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
-SOCKET_PATH=/var/run
-PID_PATH=/var/run
-
-PIDNAME="passenger"	  		#Lets you do $PS-Master or $PS-Slave
-PIDFILE=$PIDNAME.pid                    #pid file
-PIDSPATH=/etc/nginx/logs
-DESCRIPTION="Nginx Server..."
-
-RUNAS=http				#user to run as
-
-SCRIPT_OK=0				#ala error codes
-SCRIPT_ERROR=1				#ala error codes
-TRUE=1					#boolean
-FALSE=0					#boolean
-INF=255
-
-# Projects to launch
-. /etc/passenger-projects
-
-#------------------------------------------------------------------------------
-#                               Functions
-#------------------------------------------------------------------------------
-
-isRunning() {
-  if [ -f "$PID_PATH/$1.pid"  ]; then
-    return $TRUE
-  else
-    return $FALSE
-  fi
-}
-
-
-status(){
-  if [ $# -eq 1 ]; then
-    status_one $1
   else
     for (( i=0; i<${#PROJECT_PATH[@]}; i++  )); do
       status_one ${PROJECT_NAME[i]}
