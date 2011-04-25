@@ -2,10 +2,10 @@
 #                               Consts
 #-----------------------------------------------------------------------------
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
-SOCKET_PATH=/var/run
-PID_PATH=/var/run
+SOCKET_PATH=/var/run/passenger
+PID_PATH=${SOCKET_PATH}
 
-RUNAS=http                              #user to run as
+RUNAS=nginx                             #user to run as
 
 SCRIPT_OK=0                             #ala error codes
 SCRIPT_ERROR=1                          #ala error codes
@@ -88,12 +88,12 @@ start_one() {
   if [ $running -eq $TRUE ]; then
     echo "$2 is already started"
   else
-    socket_path="$SOCKET_PATH/$2.socket"
-    pid_path="$PID_PATH/$2.pid"
+    socket_path="${SOCKET_PATH}/${2}.socket"
+    pid_path="${PID_PATH}/${2}.pid"
     echo "Start $2..."
     cmd="passenger start $1 -S $socket_path --pid-file $pid_path  -d -e production"
-    rvm use $3
-    su -c "${cmd}" $RUNAS
+    rvm="rvm use $3"
+    su -c "${rvm} && ${cmd}" $RUNAS
   fi
 }
 
@@ -120,7 +120,7 @@ stop_one() {
   else
     pid="$PID_PATH/$1.pid"
     echo "Stop $1..."
-    cmd=passenger stop --pid-file $pid
+    cmd="passenger stop --pid-file $pid"
     su -c "${cmd}" $RUNAS 
   fi
 }
