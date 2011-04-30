@@ -5,7 +5,7 @@ PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 SOCKET_PATH=/var/run/passenger
 PID_PATH=${SOCKET_PATH}
 
-RUNAS=nginx                             #user to run as
+RUNAS=passenger                         #user to run as
 
 SCRIPT_OK=0                             #ala error codes
 SCRIPT_ERROR=1                          #ala error codes
