@@ -5,16 +5,17 @@ PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 SOCKET_PATH=/var/run/passenger
 PID_PATH=${SOCKET_PATH}
 
+CONFIG_FILE=/etc/passenger-projects
+
 RUNAS=passenger                         #user to run as
 
-SCRIPT_OK=0                             #ala error codes
-SCRIPT_ERROR=1                          #ala error codes
 TRUE=1                                  #boolean
 FALSE=0                                 #boolean
-INF=255
+INF=255					#Inifinty 
+
 
 # Projects to launch
-. /etc/passenger-projects
+. ${CONFIG_FILE}
 
 #------------------------------------------------------------------------------
 #                               Functions
