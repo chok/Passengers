@@ -106,7 +106,7 @@ stop() {
 }
 
 stop_one() {
-  if isRunning $1; then
+  if is_running $1; then
    echo "$1 is already stopped"
   elif config_exists $1; then
     cfg.section.$1
