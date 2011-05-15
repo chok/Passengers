@@ -87,7 +87,7 @@ start_one() {
     fi
 
     echo "Start $1..."
-    cmd="passenger start $1 -S $socket_path --pid-file $pid_path  -d -e $env"
+    cmd="passenger start $path -S $socket_path --pid-file $pid_path  -d -e $env"
     conf='source ~/.bashrc'
     su -c "${conf} ${rvm} && ${cmd}" $user
   fi
