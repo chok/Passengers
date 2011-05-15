@@ -7,6 +7,7 @@ PID_PATH=${SOCKET_PATH}
 ENV="production"
 
 CONFIG_FILE=/etc/passenger-projects
+CONFIG=(path gemset user pid_path socket_path env)
 
 RUNAS=passenger                         #user to run as
 
@@ -17,6 +18,12 @@ INF=255					#Inifinty
 #------------------------------------------------------------------------------
 #                               Functions
 #------------------------------------------------------------------------------
+
+reset_vars () {
+  for i in ${CONFIG[*]}; do
+    unset $i
+  done
+}
 
 is_running() {
   if [ -f "$PID_PATH/$1.pid"  ]; then
@@ -61,6 +68,7 @@ start_one() {
   if is_running $1; then
     echo "$1 is already started"
   elif config_exists $1; then
+    reset_vars
     cfg.section.$1
 
     if [ -z $socket_path ]; then
@@ -109,6 +117,7 @@ stop_one() {
   if $( ! is_running $1 ); then
    echo "$1 is already stopped"
   elif config_exists $1; then
+    reset_vars
     cfg.section.$1
 
     if [ -z $pid_path ]; then
