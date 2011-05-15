@@ -6,7 +6,7 @@ PID_PATH=${SOCKET_PATH}
 ENV="production"
 
 CONFIG_FILE=/etc/passenger-projects
-CONFIG=(path gemset user pid_path socket_path env)
+CONFIG=(path gemset user pid_path socket_path env nginx_version)
 
 RUNAS=passenger                         #user to run as
 
@@ -86,7 +86,6 @@ start_one() {
       env="production"
     fi
     
-
     if [ -z $gemset ]; then
       rvm=''
     else
@@ -95,6 +94,11 @@ start_one() {
 
     echo "Start $1..."
     cmd="passenger start $path -S $socket_path --pid-file $pid_path  -d -e $env"
+
+    if [ -z $nginx_version ]; then
+      cmd="${cmd} --nginx-version=${nginx_version}"
+    fi
+
     conf='source ~/.bashrc'
     su -c "${conf} ${rvm} && ${cmd}" $user
   fi
