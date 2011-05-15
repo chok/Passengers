@@ -68,7 +68,7 @@ start_one() {
     fi
 
     if [ -z $pid_path ]; then
-      pid_path="${PID_PATH}/${2}.pid"
+      pid_path="${PID_PATH}/${1}.pid"
     fi
 
     if [ -z $user ]; then
@@ -106,16 +106,22 @@ stop() {
 }
 
 stop_one() {
-  isRunning $1
-  running=$?
-
   if isRunning $1; then
    echo "$1 is already stopped"
-  else
-    pid="$PID_PATH/$1.pid"
+  elif config_exists $1; then
+    cfg.section.$1
+
+    if [ -z $pid_path ]; then
+      pid_path="${PID_PATH}/${1}.pid"
+    fi
+
+    if [ -z $user ]; then
+      user=${RUNAS}
+    fi
+
     echo "Stop $1..."
-    cmd="passenger stop --pid-file $pid"
-    su -c "${cmd}" $RUNAS && rm ${pid}.lock
+    cmd="passenger stop --pid-file $pid_path"
+    su -c "${cmd}" $user && rm ${pid_path}.lock
   fi
 }
 
