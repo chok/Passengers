@@ -9,8 +9,8 @@ CONFIG_FILE=/etc/passenger-projects
 
 RUNAS=passenger                         #user to run as
 
-TRUE=1                                  #boolean
-FALSE=0                                 #boolean
+OK=0
+ERROR=1
 INF=255					#Inifinty 
 
 #------------------------------------------------------------------------------
@@ -30,8 +30,9 @@ status(){
   if [ $# -eq 1 ]; then
     status_one $1
   else
-    for (( i=0; i<${#PROJECTS[@]}; i++  )); do
-      status_one ${PROJECTS[i]}
+    for i in ${PROJECTS[*]}
+    do
+      status_one $i
     done
   fi
 }
@@ -123,13 +124,16 @@ cfg_parser ()
 
 config_exists ()
 {
-  declare -F "$1" > /dev/null 2>&1
-  exists=$?
-  if [ $exists -ne 0 ]; then
-    echo "No configuration for ${1}, please add a section in ${CONFIG_FILE}"
-  fi
-
-  return $exists
+  for i in ${PROJECTS[*]} 
+  do
+    if [ $1 = ${i} ]
+    then
+      return $OK;
+    fi
+  done
+  
+  echo "No configuration for ${1}, please add a section in ${CONFIG_FILE}"
+  return $ERROR
 }
 
 # Projects to launch
