@@ -95,7 +95,7 @@ start_one() {
     echo "Start $1..."
     cmd="passenger start $path -S $socket_path --pid-file $pid_path  -d -e $env"
 
-    if [ -z $nginx_version ]; then
+    if [ ! -z $nginx_version ]; then
       cmd="${cmd} --nginx-version=${nginx_version}"
     fi
 
