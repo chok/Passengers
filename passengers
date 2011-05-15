@@ -81,9 +81,9 @@ start_one() {
     
 
     if [ -z $gemset ]; then
-      rvm=" && rvm use ${gemset}"
-    else
       rvm=''
+    then
+      rvm=" && rvm use ${gemset}"
     fi
 
     echo "Start $1..."
@@ -120,9 +120,9 @@ stop_one() {
     fi
     
     if [ -z $gemset ]; then
-      rvm=" && rvm use ${gemset}"
-    else
       rvm=''
+    then
+      rvm=" && rvm use ${gemset}"
     fi
 
     echo "Stop $1..."
