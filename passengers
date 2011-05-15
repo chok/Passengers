@@ -4,6 +4,7 @@
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 SOCKET_PATH=/var/run/passenger
 PID_PATH=${SOCKET_PATH}
+ENV="production"
 
 CONFIG_FILE=/etc/passenger-projects
 
@@ -17,11 +18,11 @@ INF=255					#Inifinty
 #                               Functions
 #------------------------------------------------------------------------------
 
-isRunning() {
+is_running() {
   if [ -f "$PID_PATH/$1.pid"  ]; then
-    return $TRUE
+    return $OK
   else
-    return $FALSE
+    return $ERROR
   fi
 }
 
@@ -30,8 +31,7 @@ status(){
   if [ $# -eq 1 ]; then
     status_one $1
   else
-    for i in ${PROJECTS[*]}
-    do
+    for i in ${PROJECTS[*]}; do
       status_one $i
     done
   fi
@@ -39,7 +39,7 @@ status(){
 
 status_one() {
   if config_exists $1; then
-    if isRunning $1; then
+    if is_running $1; then
       echo "$1 is started"
     else
       echo "$1 is not started"
@@ -49,9 +49,7 @@ status_one() {
 
 start() {
   if [ $# -eq 1  ]; then
-    if config_exists $1; then
-      start_one $1
-    fi
+    start_one $1
   else
     for (( i=0; i<${#PROJECTS[@]}; i++  )); do      
       start_one ${PROJECTS[i]}
@@ -60,16 +58,38 @@ start() {
 }
 
 start_one() {
-  if isRunning $1; then
-    echo "$2 is already started"
-  else
-    socket_path="${SOCKET_PATH}/${2}.socket"
-    pid_path="${PID_PATH}/${2}.pid"
-    echo "Start $2..."
-    cmd="passenger start $1 -S $socket_path --pid-file $pid_path  -d -e production"
-    rvm="rvm use $3"
+  if is_running $1; then
+    echo "$1 is already started"
+  elif config_exists $1; then
+    cfg.section.$1
+
+    if [ -z $socket_path ]; then
+      socket_path="${SOCKET_PATH}/${1}.socket"
+    fi
+
+    if [ -z $pid_path ]; then
+      pid_path="${PID_PATH}/${2}.pid"
+    fi
+
+    if [ -z $user ]; then
+      user=${RUNAS}
+    fi
+
+    if [ -z $env ]; then
+      env="production"
+    fi
+    
+
+    if [ -z $gemset ]; then
+      rvm=" && rvm use ${gemset}"
+    else
+      rvm=''
+    fi
+
+    echo "Start $1..."
+    cmd="passenger start $1 -S $socket_path --pid-file $pid_path  -d -e $env"
     conf='source ~/.bashrc'
-    su -c "${conf} && ${rvm} && ${cmd}" $RUNAS
+    su -c "${conf} ${rvm} && ${cmd}" $user
   fi
 }
 
