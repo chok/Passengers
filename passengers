@@ -82,7 +82,7 @@ start_one() {
 
     if [ -z $gemset ]; then
       rvm=''
-    then
+    else
       rvm=" && rvm use ${gemset}"
     fi
 
@@ -121,7 +121,7 @@ stop_one() {
     
     if [ -z $gemset ]; then
       rvm=''
-    then
+    else
       rvm=" && rvm use ${gemset}"
     fi
 
