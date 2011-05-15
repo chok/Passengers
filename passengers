@@ -1,7 +1,6 @@
 #------------------------------------------------------------------------------
 #                               Consts
 #-----------------------------------------------------------------------------
-PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 SOCKET_PATH=/var/run/passenger
 PID_PATH=${SOCKET_PATH}
 ENV="production"
