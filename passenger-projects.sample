@@ -1,0 +1,23 @@
+;Config sample for passengers
+;Default path for this config file: /etc/passenger-project
+;You can customize this path in the passengers script (CONFIG_FILE)
+
+[project_name]
+;required parameters
+path=/path/to/the/project
+
+;optional parameters
+;- user - default: 'passenger'
+user=my_user
+
+;- env - default: production
+env=my_env
+
+;- socket_path - default: /var/run/passenger/[project_name].socket
+socket_path=/path/to/file.socket
+
+;- pid_path - default: /var/run/passengers/[project_name].pid
+pid_path=/path/to/file.pid
+
+;- gemset - add this to use rvm with a specific gemset or ruby version
+gemset=1.9.2@mygemset
