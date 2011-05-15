@@ -51,8 +51,8 @@ start() {
   if [ $# -eq 1  ]; then
     start_one $1
   else
-    for (( i=0; i<${#PROJECTS[@]}; i++  )); do      
-      start_one ${PROJECTS[i]}
+    for i in ${PROJECTS[*]}; do
+      start_one $i
     done
   fi
 }
@@ -99,8 +99,8 @@ stop() {
       stop_one $1
     fi
   else
-    for (( i=0; i<${#PROJECTS[@]}; i++  )); do
-      stop_one ${PROJECTS[i]}
+    for i in ${PROJECTS[*]}; do
+      stop_one $i
     done
   fi
 }
