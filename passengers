@@ -13,10 +13,6 @@ TRUE=1                                  #boolean
 FALSE=0                                 #boolean
 INF=255					#Inifinty 
 
-
-# Projects to launch
-. ${CONFIG_FILE}
-
 #------------------------------------------------------------------------------
 #                               Functions
 #------------------------------------------------------------------------------
@@ -34,20 +30,15 @@ status(){
   if [ $# -eq 1 ]; then
     status_one $1
   else
-    for (( i=0; i<${#PROJECT_PATH[@]}; i++  )); do
-      status_one ${PROJECT_NAME[i]}
+    for (( i=0; i<${#PROJECTS[@]}; i++  )); do
+      status_one ${PROJECTS[i]}
     done
   fi
 }
 
 status_one() {
-  find_in_projects $1
-  path_index=$?
-  if [ $path_index -ne $INF  ]; then
-    isRunning $1
-    running=$?
-
-    if [ $running -eq $TRUE  ]; then
+  if config_exists $1; then
+    if isRunning $1; then
       echo "$1 is started"
     else
       echo "$1 is not started"
@@ -55,38 +46,20 @@ status_one() {
   fi
 }
 
-find_in_projects() {
-  for (( i=0; i<${#PROJECT_NAME[@]}; i++ )); do
-    if [ "${PROJECT_NAME[i]}" = "$1"  ]; then
-      return $i
-    fi
-  done
-
-  echo "$1 is not referenced, please add to /etc/init.d/passengers"
-  return $INF
-}
-
 start() {
   if [ $# -eq 1  ]; then
-    find_in_projects $1
-    path_index=$?
-    if [ $path_index -ne -1  ]; then
-      path=${PROJECT_PATH[path_index]}
-      gemset=${PROJECT_GEMSET[path_index]}
-      start_one $path $1 $gemset
+    if config_exists $1; then
+      start_one $1
     fi
   else
-    for (( i=0; i<${#PROJECT_PATH[@]}; i++  )); do      
-      start_one ${PROJECT_PATH[i]} ${PROJECT_NAME[i]} ${PROJECT_GEMSET[i]}
+    for (( i=0; i<${#PROJECTS[@]}; i++  )); do      
+      start_one ${PROJECTS[i]}
     done
   fi
 }
 
 start_one() {
-  isRunning $2
-  running=$?
- 
-  if [ $running -eq $TRUE ]; then
+  if isRunning $1; then
     echo "$2 is already started"
   else
     socket_path="${SOCKET_PATH}/${2}.socket"
@@ -101,14 +74,12 @@ start_one() {
 
 stop() {
   if [ $# -eq 1  ]; then
-    find_in_projects $1
-    path_index=$?
-    if [ $path_index -ne -1  ]; then
+    if config_exists $1; then
       stop_one $1
     fi
   else
-    for (( i=0; i<${#PROJECT_NAME[@]}; i++  )); do
-      stop_one ${PROJECT_NAME[i]}
+    for (( i=0; i<${#PROJECTS[@]}; i++  )); do
+      stop_one ${PROJECTS[i]}
     done
   fi
 }
@@ -117,7 +88,7 @@ stop_one() {
   isRunning $1
   running=$?
 
-  if [ $running -eq $FALSE ]; then
+  if isRunning $1; then
    echo "$1 is already stopped"
   else
     pid="$PID_PATH/$1.pid"
@@ -126,6 +97,45 @@ stop_one() {
     su -c "${cmd}" $RUNAS && rm ${pid}.lock
   fi
 }
+
+# Thanks to ajdiaz - http://ajdiaz.wordpress.com/2008/02/09/bash-ini-parser/
+cfg_parser ()
+{
+    ini="$(<$1)"                # read the file
+    ini="${ini//[/\[}"          # escape [
+    ini="${ini//]/\]}"          # escape ]
+    IFS=$'\n' && ini=( ${ini} ) # convert to line-array
+    ini=( ${ini[*]//;*/} )      # remove comments with ;
+    ini=( ${ini[*]/\    =/=} )  # remove tabs before =
+    ini=( ${ini[*]/=\   /=} )   # remove tabs be =
+    ini=( ${ini[*]/\ =\ /=} )   # remove anything with a space around =
+    ini=( ${ini[*]/#\\[/\}$'\n'cfg.section.} ) # set section prefix
+    ini=( ${ini[*]/%\\]/ \(} )    # convert text2function (1)
+    ini=( ${ini[*]/=/=\( } )    # convert item to array
+    ini=( ${ini[*]/^/}  )
+    ini=( ${ini[*]/%/ \)} )     # close array parenthesis
+    ini=( ${ini[*]/%\\ \)/ \\} ) # the multiline trick
+    ini=( ${ini[*]/%\( \)/\(\) \{} ) # convert text2function (2)
+    ini=( ${ini[*]/%\} \)/\}} ) # remove extra parenthesis
+    ini[0]="" # remove first element
+    ini[${#ini[*]} + 1]='}'    # add the last brace
+    eval "$(echo "${ini[*]}")" # eval the result
+}
+
+config_exists ()
+{
+  declare -F "$1" > /dev/null 2>&1
+  exists=$?
+  if [ $exists -ne 0 ]; then
+    echo "No configuration for ${1}, please add a section in ${CONFIG_FILE}"
+  fi
+
+  return $exists
+}
+
+# Projects to launch
+cfg_parser ${CONFIG_FILE}
+PROJECTS=($(declare -F | grep cfg.section | sed -e 's/declare -f cfg.section.//g'))
 
 case "$1" in
   start)
@@ -142,7 +152,6 @@ case "$1" in
 	status $2
 	;;
   *)
-	echo "$0 - $1 - $2"
 	FULLPATH=/etc/init.d/passengers
 	if [[ ! -f $FULLPATH ]]
 	then
