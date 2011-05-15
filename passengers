@@ -118,10 +118,17 @@ stop_one() {
     if [ -z $user ]; then
       user=${RUNAS}
     fi
+    
+    if [ -z $gemset ]; then
+      rvm=" && rvm use ${gemset}"
+    else
+      rvm=''
+    fi
 
     echo "Stop $1..."
     cmd="passenger stop --pid-file $pid_path"
-    su -c "${cmd}" $user && rm ${pid_path}.lock
+    conf='source ~/.bashrc'
+    su -c "${conf} ${rvm} && ${cmd}" $user && rm ${pid_path}.lock
   fi
 }
 
